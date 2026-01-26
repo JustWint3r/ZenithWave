@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: discord-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - bot-network
+
+  mongodb:
+    image: mongo:7
+    container_name: discord-bot-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: discordbot
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    ports:
+      - "27017:27017"
+    networks:
+      - bot-network
+
+volumes:
+  mongodb_data:
+  mongodb_config:
+
+networks:
+  bot-network:
+    driver: bridge
