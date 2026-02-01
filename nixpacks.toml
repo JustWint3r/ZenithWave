@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "npm", "ffmpeg", "python3"]
+nixPkgs = ["nodejs_20", "npm", "ffmpeg"]
 
 [phases.install]
-cmds = ["NODE_OPTIONS='--max-old-space-size=4096' npm install"]
+cmds = ["npm install --omit=dev"]
 
 [start]
-cmd = "NODE_OPTIONS='--max-old-space-size=2048' npm start"
+cmd = "node --max-old-space-size=512 src/index.js"
