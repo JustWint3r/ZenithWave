@@ -39,7 +39,7 @@ await player.extractors.register(YoutubeiExtractor, {
   }
 });
 // Load other default extractors for Spotify, SoundCloud, etc.
-await player.extractors.loadDefault((ext) => ext !== 'YoutubeExtractor');
+await player.extractors.loadDefault((ext) => ext !== 'YouTubeExtractor');
 console.log('Loaded YouTubei extractor and other default extractors (Spotify, SoundCloud, etc.)');
 
 player.events.on('playerStart', (queue, track) => {
