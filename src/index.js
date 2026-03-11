@@ -35,8 +35,9 @@ console.log('YOUTUBE_COOKIE set:', !!process.env.YOUTUBE_COOKIE);
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: process.env.YOUTUBE_COOKIE,
+    disablePlayer: true,
     streamOptions: {
-      useClient: 'TV_EMBEDDED'
+      useClient: 'IOS'
     }
   });
   console.log('YoutubeiExtractor registered successfully');
