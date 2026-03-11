@@ -30,9 +30,10 @@ const player = new Player(client, {
   }
 });
 
-// Load YouTubei extractor (more stable than default YouTube extractor)
-// Use ANDROID client - IOS client gets blocked on server IPs (Railway, etc.)
+// Load YouTubei extractor with YouTube cookies for server IP compatibility
+// TV_EMBEDDED client + cookies bypasses Railway/datacenter IP restrictions
 await player.extractors.register(YoutubeiExtractor, {
+  cookie: process.env.YOUTUBE_COOKIE,
   streamOptions: {
     useClient: 'TV_EMBEDDED'
   }
