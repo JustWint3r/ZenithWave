@@ -31,7 +31,12 @@ const player = new Player(client, {
 });
 
 // Load YouTubei extractor (more stable than default YouTube extractor)
-await player.extractors.register(YoutubeiExtractor, {});
+// Use ANDROID client - IOS client gets blocked on server IPs (Railway, etc.)
+await player.extractors.register(YoutubeiExtractor, {
+  streamOptions: {
+    useClient: 'ANDROID'
+  }
+});
 // Load other default extractors for Spotify, SoundCloud, etc.
 await player.extractors.loadDefault((ext) => ext !== 'YoutubeExtractor');
 console.log('Loaded YouTubei extractor and other default extractors (Spotify, SoundCloud, etc.)');
