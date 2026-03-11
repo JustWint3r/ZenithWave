@@ -31,16 +31,22 @@ const player = new Player(client, {
 });
 
 // Load YouTubei extractor with YouTube cookies for server IP compatibility
-// TV_EMBEDDED client + cookies bypasses Railway/datacenter IP restrictions
-await player.extractors.register(YoutubeiExtractor, {
-  cookie: process.env.YOUTUBE_COOKIE,
-  streamOptions: {
-    useClient: 'TV_EMBEDDED'
-  }
-});
+console.log('YOUTUBE_COOKIE set:', !!process.env.YOUTUBE_COOKIE);
+try {
+  await player.extractors.register(YoutubeiExtractor, {
+    cookie: process.env.YOUTUBE_COOKIE,
+    streamOptions: {
+      useClient: 'TV_EMBEDDED'
+    }
+  });
+  console.log('YoutubeiExtractor registered successfully');
+} catch (err) {
+  console.error('Failed to register YoutubeiExtractor:', err);
+}
 // Load other default extractors for Spotify, SoundCloud, etc.
-await player.extractors.loadDefault((ext) => ext !== 'YouTubeExtractor');
-console.log('Loaded YouTubei extractor and other default extractors (Spotify, SoundCloud, etc.)');
+const defaultResult = await player.extractors.loadDefault((ext) => ext !== 'YouTubeExtractor');
+console.log('Default extractors loaded:', defaultResult);
+console.log('Registered extractors:', [...player.extractors.store.keys()]);
 
 player.events.on('playerStart', (queue, track) => {
   queue.metadata.channel.send(`Now playing: **${track.title}** by **${track.author}**`);
