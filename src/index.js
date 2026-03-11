@@ -34,7 +34,7 @@ const player = new Player(client, {
 // Use ANDROID client - IOS client gets blocked on server IPs (Railway, etc.)
 await player.extractors.register(YoutubeiExtractor, {
   streamOptions: {
-    useClient: 'ANDROID'
+    useClient: 'TV_EMBEDDED'
   }
 });
 // Load other default extractors for Spotify, SoundCloud, etc.
