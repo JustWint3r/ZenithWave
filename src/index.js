@@ -51,7 +51,7 @@ console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 
 // Pre-create a streaming innertube instance (retrieve_player: false, IOS client)
 // This avoids creating a new one on every stream request
-const streamTube = await Innertube.create({ retrieve_player: false, generate_session_locally: true });
+const streamTube = await Innertube.create({ retrieve_player: false, generate_session_locally: true, cookie: cookieHeader });
 
 try {
   await player.extractors.register(YoutubeiExtractor, {
