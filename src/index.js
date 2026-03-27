@@ -8,6 +8,7 @@ http.createServer((req, res) => res.end('OK')).listen(port, () => {
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
+import { Innertube } from 'youtubei.js';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
@@ -60,10 +61,22 @@ console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 
 try {
+  // Separate cookieless Innertube for ANDROID streaming (cookies cause 400 on ANDROID client)
+  const androidTube = await Innertube.create({ retrieve_player: false });
+
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
-    streamOptions: {
-      useClient: 'ANDROID',
+    createStream: async (q) => {
+      let id = new URL(q.url).searchParams.get('v');
+      if (!id) id = q.url.split('/').at(-1)?.split('?').at(0);
+      const info = await androidTube.getBasicInfo(id, 'ANDROID');
+      if (info.basic_info.is_live) return info.streaming_data?.hls_manifest_url;
+      const fmt = info.chooseFormat({ type: 'audio', quality: 'best' });
+      if (!fmt?.url) throw new Error('No audio format URL found');
+      const { Readable } = await import('stream');
+      const res = await fetch(fmt.url);
+      if (!res.ok) throw new Error(`Stream fetch failed: ${res.status}`);
+      return Readable.fromWeb(res.body);
     },
   });
   console.log('YoutubeiExtractor registered successfully');
