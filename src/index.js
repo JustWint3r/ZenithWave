@@ -38,6 +38,7 @@ console.log('YOUTUBE_COOKIE set:', !!process.env.YOUTUBE_COOKIE);
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: process.env.YOUTUBE_COOKIE,
+    generateWithPoToken: true,
     streamOptions: {
       useClient: 'ANDROID'
     }
