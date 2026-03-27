@@ -27,8 +27,16 @@ export default {
     const query = interaction.options.getString('query');
 
     try {
-      const { track } = await player.play(interaction.member.voice.channel, query, {
-        fallbackSearchEngine: QueryType.YOUTUBE_SEARCH,
+      console.log(`[PLAY] Query: "${query}", registered extractors:`, [...player.extractors.store.keys()]);
+      const searchResult = await player.search(query, {
+        searchEngine: QueryType.YOUTUBE_SEARCH,
+        requestedBy: interaction.user
+      });
+      console.log(`[PLAY] Search result: tracks=${searchResult.tracks.length}, extractor=${searchResult.extractor?.identifier ?? 'N/A'}`);
+      if (searchResult.isEmpty()) {
+        return interaction.editReply({ content: `No results found for "${query}"` });
+      }
+      const { track } = await player.play(interaction.member.voice.channel, searchResult, {
         nodeOptions: {
           metadata: {
             channel: interaction.channel,

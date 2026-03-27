@@ -27,8 +27,11 @@ const player = new Player(client, {
     quality: 'highestaudio',
     highWaterMark: 1 << 25,
     filter: 'audioonly'
-  }
+  },
+  skipFFmpeg: false
 });
+player.setMaxListeners(50);
+player.on('debug', (msg) => console.log(`[PLAYER DEBUG] ${msg}`));
 
 // Load YouTubei extractor with YouTube cookies for server IP compatibility
 console.log('YOUTUBE_COOKIE set:', !!process.env.YOUTUBE_COOKIE);
