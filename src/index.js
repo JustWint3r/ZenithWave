@@ -46,6 +46,9 @@ function parseCookieFile(raw) {
 }
 
 const cookieHeader = parseCookieFile(process.env.YOUTUBE_COOKIE);
+console.log('=== ZenithWave Bot Starting ===');
+console.log(`Node version: ${process.version}`);
+console.log(`Time: ${new Date().toISOString()}`);
 console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 
 try {
