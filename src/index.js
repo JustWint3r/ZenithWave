@@ -1,7 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
-import { Innertube } from 'youtubei.js';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
@@ -49,22 +48,9 @@ function parseCookieFile(raw) {
 const cookieHeader = parseCookieFile(process.env.YOUTUBE_COOKIE);
 console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 
-// Pre-create a streaming innertube instance (retrieve_player: false, IOS client)
-// This avoids creating a new one on every stream request
-const streamTube = await Innertube.create({ retrieve_player: false, generate_session_locally: true, cookie: cookieHeader });
-
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
-    disablePlayer: true,
-    createStream: async (track) => {
-      const id = new URL(track.url).searchParams.get('v') || track.url.split('/').at(-1)?.split('?')[0];
-      const info = await streamTube.getBasicInfo(id, 'IOS');
-      if (info.basic_info.is_live) return info.streaming_data?.hls_manifest_url;
-      const fmt = info.chooseFormat({ quality: 'best', format: 'mp4', type: 'audio' });
-      if (!fmt?.url || !fmt?.content_length) throw new Error('No stream format available');
-      return fmt.url;
-    }
   });
   console.log('YoutubeiExtractor registered successfully');
 } catch (err) {
