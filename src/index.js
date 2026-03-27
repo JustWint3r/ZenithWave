@@ -65,7 +65,7 @@ try {
       useClient: 'ANDROID',
     },
     innertubeConfigRaw: {
-      client_name: 'ANDROID',
+      client_type: 'ANDROID',
     },
   });
   console.log('YoutubeiExtractor registered successfully');
