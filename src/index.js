@@ -1,7 +1,7 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
-import { stream as playDlStream, setToken } from 'play-dl';
+
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
@@ -49,21 +49,21 @@ function parseCookieFile(raw) {
     .join('; ');
 }
 
-// Configure play-dl with YouTube cookies for streaming
 const cookieHeader = parseCookieFile(process.env.YOUTUBE_COOKIE);
-if (cookieHeader) {
-  await setToken({ youtube: { cookie: cookieHeader } });
-}
 
-// Load YouTubei extractor — use play-dl for streaming to bypass Railway IP blocks
+// Load YouTubei extractor with YouTube cookies for server IP compatibility
 console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
     disablePlayer: true,
-    createStream: async (track) => {
-      const source = await playDlStream(track.url, { quality: 2 });
-      return source.stream;
+    overrideDownloadOptions: {
+      quality: 'best',
+      format: 'mp4',
+      type: 'audio'
+    },
+    streamOptions: {
+      useClient: 'IOS'
     }
   });
   console.log('YoutubeiExtractor registered successfully');
