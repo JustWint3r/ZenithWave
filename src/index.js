@@ -1,6 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Player } from 'discord-player';
-import { YoutubeiExtractor } from 'discord-player-youtubei';
+import { YoutubeiExtractor, stream as ytStream } from 'discord-player-youtubei';
 
 import mongoose from 'mongoose';
 import fs from 'fs';
@@ -57,13 +57,16 @@ try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
     disablePlayer: true,
-    overrideDownloadOptions: {
-      quality: 'best',
-      format: 'mp4',
-      type: 'audio'
-    },
-    streamOptions: {
-      useClient: 'IOS'
+    createStream: async (track, extractor) => {
+      console.log(`[STREAM] Starting stream for: ${track.url}`);
+      try {
+        const result = await ytStream(track.url, false, { quality: 'best', format: 'mp4', type: 'audio' }, extractor.innerTube, 'IOS');
+        console.log(`[STREAM] Got stream, url=${result.downloadedUrl ? 'present' : 'missing'}, content_length=${result.formatInfo?.content_length}`);
+        return result.stream;
+      } catch (e) {
+        console.error(`[STREAM] Error:`, e.message);
+        throw e;
+      }
     }
   });
   console.log('YoutubeiExtractor registered successfully');
