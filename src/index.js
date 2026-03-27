@@ -54,10 +54,6 @@ console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
-    disablePlayer: true,
-    innertubeConfigRaw: {
-      client_type: 'TVHTML5'
-    },
     streamOptions: {
       useClient: 'TV_EMBEDDED'
     }
