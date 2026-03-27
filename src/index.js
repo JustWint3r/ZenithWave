@@ -39,6 +39,9 @@ try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: process.env.YOUTUBE_COOKIE,
     disablePlayer: true,
+    innertubeConfigRaw: {
+      client_type: 'TVHTML5'
+    },
     streamOptions: {
       useClient: 'TV_EMBEDDED'
     }
