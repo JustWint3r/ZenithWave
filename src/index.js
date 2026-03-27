@@ -55,7 +55,7 @@ try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
     streamOptions: {
-      useClient: 'ANDROID'
+      useClient: 'IOS'
     }
   });
   console.log('YoutubeiExtractor registered successfully');
