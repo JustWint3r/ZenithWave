@@ -55,8 +55,11 @@ console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 try {
   await player.extractors.register(YoutubeiExtractor, {
     authentication: process.env.YOUTUBE_OAUTH,
+    ignoreSignInErrors: true,
   });
-  console.log('YoutubeiExtractor registered successfully');
+  const ext = player.extractors.get('com.retrouser955.discord-player.discord-player-youtubei');
+  console.log('YoutubeiExtractor registered, logged_in:', ext?.innerTube?.session?.logged_in);
+  console.log('YoutubeiExtractor protocols:', ext?.protocols);
 } catch (err) {
   console.error('Failed to register YoutubeiExtractor:', err);
 }
