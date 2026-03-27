@@ -28,6 +28,21 @@ export default {
 
     try {
       console.log(`[PLAY] Query: "${query}", registered extractors:`, [...player.extractors.store.keys()]);
+
+      // Raw innertube search test
+      const ext = player.extractors.get('com.retrouser955.discord-player.discord-player-youtubei');
+      if (ext) {
+        try {
+          const rawSearch = await ext.innerTube.search(query);
+          console.log(`[PLAY] Raw innertube search: total=${rawSearch.videos?.length ?? 'undefined'}, type=${rawSearch.constructor?.name}`);
+          console.log(`[PLAY] First video:`, rawSearch.videos?.[0]?.type, rawSearch.videos?.[0]?.title?.text);
+        } catch (e) {
+          console.error(`[PLAY] Raw innertube search ERROR:`, e.message);
+        }
+      } else {
+        console.log(`[PLAY] Extractor not found in store`);
+      }
+
       const searchResult = await player.search(query, {
         searchEngine: QueryType.YOUTUBE_SEARCH,
         requestedBy: interaction.user
