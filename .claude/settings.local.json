@@ -4,7 +4,8 @@
       "Bash(chmod:*)",
       "Bash(npm install:*)",
       "Bash(python3:*)",
-      "Bash(git rev-parse:*)"
+      "Bash(git rev-parse:*)",
+      "WebSearch"
     ]
   }
 }
