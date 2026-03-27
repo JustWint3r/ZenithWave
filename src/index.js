@@ -1,10 +1,16 @@
+import http from 'http';
+// Start HTTP server immediately so Render detects the port
+const port = process.env.PORT || 3000;
+http.createServer((req, res) => res.end('OK')).listen(port, () => {
+  console.log(`HTTP server listening on port ${port}`);
+});
+
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
-import http from 'http';
 import { fileURLToPath } from 'url';
 import config from '../config/config.js';
 
@@ -165,9 +171,6 @@ async function start() {
   }
 }
 
-// Keep Render Web Service alive
-const port = process.env.PORT || 3000;
-http.createServer((req, res) => res.end('OK')).listen(port);
 
 process.on('unhandledRejection', error => {
   console.error('Unhandled promise rejection:', error);
