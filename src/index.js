@@ -57,15 +57,41 @@ try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
     disablePlayer: true,
-    createStream: async (track) => {
-      console.log(`[STREAM] Starting stream for: ${track.url}`);
+    createStream: async (track, extractor) => {
+      console.log(`[STREAM] createStream called for: ${track.url}`);
+      const id = new URL(track.url).searchParams.get('v') || track.url.split('/').at(-1)?.split('?')[0];
       try {
-        // Use a fresh innertube with retrieve_player: false — IOS returns pre-signed URLs that don't need player JS
-        const result = await ytStream(track.url, false, { quality: 'best', format: 'mp4', type: 'audio' }, null, 'IOS');
-        console.log(`[STREAM] Got stream, url=${result.downloadedUrl ? 'present' : 'missing'}, content_length=${result.formatInfo?.content_length}`);
-        return result.stream;
+        console.log(`[STREAM] calling getBasicInfo for ${id}`);
+        const info = await extractor.innerTube.getBasicInfo(id, 'IOS');
+        console.log(`[STREAM] streaming_data present: ${!!info.streaming_data}, formats: ${info.streaming_data?.formats?.length}, adaptive: ${info.streaming_data?.adaptive_formats?.length}`);
+        const fmt = info.chooseFormat({ quality: 'best', format: 'mp4', type: 'audio' });
+        console.log(`[STREAM] format: itag=${fmt?.itag}, url=${!!fmt?.url}, content_length=${fmt?.content_length}`);
+        if (!fmt?.url || !fmt?.content_length) throw new Error('No valid stream format');
+        const { Readable } = await import('stream');
+        const { Constants, Utils } = await import('youtubei.js');
+        const TEN_MB = 1048576 * 10;
+        let start = 0;
+        let end = Math.min(Number(fmt.content_length), TEN_MB);
+        let isEnded = false;
+        let abortController;
+        return new Readable({
+          async read() {
+            if (isEnded) return;
+            if (end >= Number(fmt.content_length)) { isEnded = true; end = Number(fmt.content_length); }
+            abortController = new AbortController();
+            const url = `${fmt.url}&range=${start}-${end}`;
+            console.log(`[STREAM] fetching range ${start}-${end}`);
+            const res = await fetch(url, { headers: { 'User-Agent': 'com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)' }, signal: abortController.signal });
+            if (!res.body) throw new Error(`Fetch failed at ${start}`);
+            for await (const chunk of Utils.streamToIterable(res.body)) this.push(Buffer.from(chunk));
+            if (isEnded) this.push(null);
+            start = end + 1;
+            end += TEN_MB;
+          },
+          destroy(err) { if (abortController) abortController.abort(err); }
+        });
       } catch (e) {
-        console.error(`[STREAM] Error:`, e.message);
+        console.error(`[STREAM] Error: ${e.message}`);
         throw e;
       }
     }
