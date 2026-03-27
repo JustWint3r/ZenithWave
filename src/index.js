@@ -53,7 +53,7 @@ console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 
 try {
   await player.extractors.register(YoutubeiExtractor, {
-    cookie: cookieHeader,
+    authentication: process.env.YOUTUBE_OAUTH,
   });
   console.log('YoutubeiExtractor registered successfully');
 } catch (err) {
