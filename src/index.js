@@ -61,11 +61,9 @@ console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 
 try {
   await player.extractors.register(YoutubeiExtractor, {
+    cookie: cookieHeader,
     streamOptions: {
       useClient: 'ANDROID',
-    },
-    innertubeConfigRaw: {
-      client_type: 'ANDROID',
     },
   });
   console.log('YoutubeiExtractor registered successfully');
