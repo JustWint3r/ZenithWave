@@ -27,7 +27,8 @@ export default {
 
     try {
       const { track } = await player.play(interaction.member.voice.channel, query, {
-        searchEngine: QueryType.YOUTUBE_SEARCH,
+        searchEngine: QueryType.AUTO,
+        fallbackSearchEngine: QueryType.YOUTUBE_SEARCH,
         nodeOptions: {
           metadata: {
             channel: interaction.channel,

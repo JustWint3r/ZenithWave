@@ -50,10 +50,13 @@ console.log('=== ZenithWave Bot Starting ===');
 console.log(`Node version: ${process.version}`);
 console.log(`Time: ${new Date().toISOString()}`);
 console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
+console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 
 try {
   await player.extractors.register(YoutubeiExtractor, {
     authentication: process.env.YOUTUBE_OAUTH,
+    cookie: cookieHeader,
+    disablePlayer: true,
   });
   console.log('YoutubeiExtractor registered successfully');
 } catch (err) {
