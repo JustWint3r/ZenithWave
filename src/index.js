@@ -1,7 +1,6 @@
 import { Client, Collection, GatewayIntentBits } from 'discord.js';
 import { Player } from 'discord-player';
-import { YoutubeiExtractor, stream as ytStream, getYoutubeiInstance } from 'discord-player-youtubei';
-
+import { YoutubeiExtractor } from 'discord-player-youtubei';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
@@ -28,11 +27,8 @@ const player = new Player(client, {
     quality: 'highestaudio',
     highWaterMark: 1 << 25,
     filter: 'audioonly'
-  },
-  skipFFmpeg: false
+  }
 });
-player.setMaxListeners(50);
-player.on('debug', (msg) => console.log(`[PLAYER DEBUG] ${msg}`));
 
 // Parse Netscape cookie file format into a cookie header string
 function parseCookieFile(raw) {
@@ -50,60 +46,19 @@ function parseCookieFile(raw) {
 }
 
 const cookieHeader = parseCookieFile(process.env.YOUTUBE_COOKIE);
-
-// Load YouTubei extractor with YouTube cookies for server IP compatibility
 console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
+
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
-    disablePlayer: true,
-    createStream: async (track, extractor) => {
-      console.log(`[STREAM] createStream called for: ${track.url}`);
-      const id = new URL(track.url).searchParams.get('v') || track.url.split('/').at(-1)?.split('?')[0];
-      try {
-        console.log(`[STREAM] calling getBasicInfo for ${id}`);
-        const info = await extractor.innerTube.getBasicInfo(id, 'IOS');
-        console.log(`[STREAM] streaming_data present: ${!!info.streaming_data}, formats: ${info.streaming_data?.formats?.length}, adaptive: ${info.streaming_data?.adaptive_formats?.length}`);
-        const fmt = info.chooseFormat({ quality: 'best', format: 'mp4', type: 'audio' });
-        console.log(`[STREAM] format: itag=${fmt?.itag}, url=${!!fmt?.url}, content_length=${fmt?.content_length}`);
-        if (!fmt?.url || !fmt?.content_length) throw new Error('No valid stream format');
-        const { Readable } = await import('stream');
-        const { Constants, Utils } = await import('youtubei.js');
-        const TEN_MB = 1048576 * 10;
-        let start = 0;
-        let end = Math.min(Number(fmt.content_length), TEN_MB);
-        let isEnded = false;
-        let abortController;
-        return new Readable({
-          async read() {
-            if (isEnded) return;
-            if (end >= Number(fmt.content_length)) { isEnded = true; end = Number(fmt.content_length); }
-            abortController = new AbortController();
-            const url = `${fmt.url}&range=${start}-${end}`;
-            console.log(`[STREAM] fetching range ${start}-${end}`);
-            const res = await fetch(url, { headers: { 'User-Agent': 'com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)' }, signal: abortController.signal });
-            if (!res.body) throw new Error(`Fetch failed at ${start}`);
-            for await (const chunk of Utils.streamToIterable(res.body)) this.push(Buffer.from(chunk));
-            if (isEnded) this.push(null);
-            start = end + 1;
-            end += TEN_MB;
-          },
-          destroy(err) { if (abortController) abortController.abort(err); }
-        });
-      } catch (e) {
-        console.error(`[STREAM] Error: ${e.message}`);
-        throw e;
-      }
-    }
   });
   console.log('YoutubeiExtractor registered successfully');
 } catch (err) {
   console.error('Failed to register YoutubeiExtractor:', err);
 }
-// Load other default extractors for Spotify, SoundCloud, etc.
+
 const defaultResult = await player.extractors.loadDefault((ext) => ext !== 'YouTubeExtractor');
 console.log('Default extractors loaded:', defaultResult);
-console.log('Registered extractors:', [...player.extractors.store.keys()]);
 
 player.events.on('playerStart', (queue, track) => {
   queue.metadata.channel.send(`Now playing: **${track.title}** by **${track.author}**`);
@@ -123,7 +78,6 @@ player.events.on('emptyChannel', (queue) => {
 
 player.events.on('playerError', (queue, error) => {
   console.error(`Player error: ${error.message}`);
-  console.error(error);
   if (queue?.metadata?.channel) {
     queue.metadata.channel.send(`Error playing track: ${error.message}`);
   }
@@ -131,14 +85,9 @@ player.events.on('playerError', (queue, error) => {
 
 player.events.on('error', (queue, error) => {
   console.error(`General player error: ${error.message}`);
-  console.error(error);
   if (queue?.metadata?.channel) {
     queue.metadata.channel.send(`An error occurred: ${error.message}`);
   }
-});
-
-player.events.on('debug', (queue, message) => {
-  console.log(`[DEBUG] ${message}`);
 });
 
 async function loadCommands() {

@@ -15,7 +15,6 @@ export default {
   async execute(interaction) {
     const player = useMainPlayer();
 
-    // Defer reply immediately to prevent timeout
     await interaction.deferReply();
 
     if (!interaction.member.voice.channel) {
@@ -27,32 +26,8 @@ export default {
     const query = interaction.options.getString('query');
 
     try {
-      console.log(`[PLAY] Query: "${query}", registered extractors:`, [...player.extractors.store.keys()]);
-
-      // Raw innertube search test
-      const ext = player.extractors.get('com.retrouser955.discord-player.discord-player-youtubei');
-      if (ext) {
-        try {
-          const rawSearch = await ext.innerTube.search(query);
-          const allVideos = rawSearch.videos ?? [];
-          console.log(`[PLAY] Raw innertube search: total=${allVideos.length}`);
-          allVideos.slice(0, 3).forEach((v, i) => console.log(`[PLAY] video[${i}]: type=${v.type}, title=${v.title?.text ?? v.title}`));
-        } catch (e) {
-          console.error(`[PLAY] Raw innertube search ERROR:`, e.message);
-        }
-      } else {
-        console.log(`[PLAY] Extractor not found in store`);
-      }
-
-      const searchResult = await player.search(query, {
+      const { track } = await player.play(interaction.member.voice.channel, query, {
         searchEngine: QueryType.YOUTUBE_SEARCH,
-        requestedBy: interaction.user
-      });
-      console.log(`[PLAY] Search result: tracks=${searchResult.tracks.length}, extractor=${searchResult.extractor?.identifier ?? 'N/A'}`);
-      if (searchResult.isEmpty()) {
-        return interaction.editReply({ content: `No results found for "${query}"` });
-      }
-      const { track } = await player.play(interaction.member.voice.channel, searchResult, {
         nodeOptions: {
           metadata: {
             channel: interaction.channel,
@@ -75,7 +50,6 @@ export default {
     } catch (error) {
       console.error('Error playing track:', error);
 
-      // Check if interaction has been replied to
       if (interaction.deferred || interaction.replied) {
         return interaction.editReply({
           content: `Something went wrong: ${error.message}`
