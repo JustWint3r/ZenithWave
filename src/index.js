@@ -4,6 +4,7 @@ import { YoutubeiExtractor } from 'discord-player-youtubei';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
+import http from 'http';
 import { fileURLToPath } from 'url';
 import config from '../config/config.js';
 
@@ -164,6 +165,10 @@ async function start() {
     process.exit(1);
   }
 }
+
+// Keep Render Web Service alive
+const port = process.env.PORT || 3000;
+http.createServer((req, res) => res.end('OK')).listen(port);
 
 process.on('unhandledRejection', error => {
   console.error('Unhandled promise rejection:', error);
