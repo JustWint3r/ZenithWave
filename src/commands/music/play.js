@@ -34,8 +34,9 @@ export default {
       if (ext) {
         try {
           const rawSearch = await ext.innerTube.search(query);
-          console.log(`[PLAY] Raw innertube search: total=${rawSearch.videos?.length ?? 'undefined'}, type=${rawSearch.constructor?.name}`);
-          console.log(`[PLAY] First video:`, rawSearch.videos?.[0]?.type, rawSearch.videos?.[0]?.title?.text);
+          const allVideos = rawSearch.videos ?? [];
+          console.log(`[PLAY] Raw innertube search: total=${allVideos.length}`);
+          allVideos.slice(0, 3).forEach((v, i) => console.log(`[PLAY] video[${i}]: type=${v.type}, title=${v.title?.text ?? v.title}`));
         } catch (e) {
           console.error(`[PLAY] Raw innertube search ERROR:`, e.message);
         }
