@@ -94,6 +94,7 @@ player.events.on('emptyChannel', (queue) => {
 
 player.events.on('playerError', (queue, error) => {
   console.error(`Player error: ${error.message}`);
+  if (error.cause) console.error('Player error cause:', JSON.stringify(error.cause));
   if (queue?.metadata?.channel) {
     queue.metadata.channel.send(`Error playing track: ${error.message}`);
   }
@@ -101,6 +102,7 @@ player.events.on('playerError', (queue, error) => {
 
 player.events.on('error', (queue, error) => {
   console.error(`General player error: ${error.message}`);
+  if (error.cause) console.error('Error cause:', error.cause);
   if (queue?.metadata?.channel) {
     queue.metadata.channel.send(`An error occurred: ${error.message}`);
   }
