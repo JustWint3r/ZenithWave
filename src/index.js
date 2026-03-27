@@ -33,11 +33,27 @@ const player = new Player(client, {
 player.setMaxListeners(50);
 player.on('debug', (msg) => console.log(`[PLAYER DEBUG] ${msg}`));
 
+// Parse Netscape cookie file format into a cookie header string
+function parseCookieFile(raw) {
+  if (!raw) return undefined;
+  return raw
+    .split('\n')
+    .filter(line => line && !line.startsWith('#') && line.includes('\t'))
+    .map(line => {
+      const parts = line.trim().split('\t');
+      if (parts.length < 7) return null;
+      return `${parts[5]}=${parts[6]}`;
+    })
+    .filter(Boolean)
+    .join('; ');
+}
+
 // Load YouTubei extractor with YouTube cookies for server IP compatibility
-console.log('YOUTUBE_COOKIE set:', !!process.env.YOUTUBE_COOKIE);
+const cookieHeader = parseCookieFile(process.env.YOUTUBE_COOKIE);
+console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 try {
   await player.extractors.register(YoutubeiExtractor, {
-    cookie: process.env.YOUTUBE_COOKIE,
+    cookie: cookieHeader,
     disablePlayer: true,
     innertubeConfigRaw: {
       client_type: 'TVHTML5'
