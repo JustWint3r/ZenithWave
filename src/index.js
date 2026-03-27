@@ -1,7 +1,7 @@
 import http from 'http';
 // Start HTTP server immediately so Render detects the port
 const port = process.env.PORT || 3000;
-http.createServer((req, res) => res.end('OK')).listen(port, () => {
+http.createServer((req, res) => res.end('OK')).listen(port, '0.0.0.0', () => {
   console.log(`HTTP server listening on port ${port}`);
 });
 
