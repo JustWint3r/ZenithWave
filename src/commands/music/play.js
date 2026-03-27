@@ -27,19 +27,7 @@ export default {
     const query = interaction.options.getString('query');
 
     try {
-      // Determine search engine based on query
-      let searchEngine = 'youtube'; // Default to YouTube
-
-      if (query.includes('spotify.com')) {
-        searchEngine = 'spotify';
-      } else if (query.includes('soundcloud.com')) {
-        searchEngine = 'soundcloud';
-      } else if (query.includes('apple.com') || query.includes('music.apple')) {
-        searchEngine = 'apple_music';
-      }
-
       const { track } = await player.play(interaction.member.voice.channel, query, {
-        searchEngine: searchEngine,
         nodeOptions: {
           metadata: {
             channel: interaction.channel,
