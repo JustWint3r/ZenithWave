@@ -69,8 +69,15 @@ try {
     createStream: async (q) => {
       let id = new URL(q.url).searchParams.get('v');
       if (!id) id = q.url.split('/').at(-1)?.split('?').at(0);
-      const info = await androidTube.getBasicInfo(id, 'ANDROID');
+      let info;
+      try {
+        info = await androidTube.getBasicInfo(id, 'ANDROID');
+      } catch (e) {
+        console.error('getBasicInfo ANDROID failed:', e.message, e.info || '');
+        throw e;
+      }
       if (info.basic_info.is_live) return info.streaming_data?.hls_manifest_url;
+      console.log('streaming_data exists:', !!info.streaming_data, 'formats:', info.streaming_data?.adaptive_formats?.length ?? 0);
       const fmt = info.chooseFormat({ type: 'audio', quality: 'best' });
       if (!fmt?.url) throw new Error('No audio format URL found');
       const { Readable } = await import('stream');
