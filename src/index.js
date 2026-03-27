@@ -54,6 +54,7 @@ console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
+    disablePlayer: true,
     streamOptions: {
       useClient: 'IOS'
     }
