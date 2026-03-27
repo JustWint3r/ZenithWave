@@ -64,6 +64,9 @@ try {
     streamOptions: {
       useClient: 'ANDROID',
     },
+    innertubeConfigRaw: {
+      client_name: 'ANDROID',
+    },
   });
   console.log('YoutubeiExtractor registered successfully');
 } catch (err) {
