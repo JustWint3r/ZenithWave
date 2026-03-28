@@ -62,6 +62,7 @@ console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
+    useYoutubeDL: true,
     generateWithPoToken: true,
   });
   console.log('YoutubeiExtractor registered successfully');
