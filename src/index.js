@@ -85,8 +85,9 @@ try {
         noProgress: true,
       };
       if (cookieFilePath) args.cookies = cookieFilePath;
+      console.log(`[yt-dlp] Starting stream for ${videoUrl}`);
       const proc = youtubeDl.exec(videoUrl, args);
-      proc.catch(() => {});
+      proc.catch((err) => console.error('[yt-dlp] Error:', err.stderr || err.message));
       const stream = proc.stdout;
       if (!stream) return undefined;
       const kill = () => !proc.killed && proc.kill();
