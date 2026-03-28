@@ -92,7 +92,7 @@ try {
         output: '-',
         noWarnings: true,
         noProgress: true,
-        extractor_args: 'youtube:player_client=ios',
+        'extractor-args': 'youtube:player_client=ios',
       };
       if (cookieFilePath) args.cookies = cookieFilePath;
       console.log(`[yt-dlp] Starting stream for ${videoUrl}`);
