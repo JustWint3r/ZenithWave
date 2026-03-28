@@ -90,7 +90,6 @@ try {
       console.log(`[yt-dlp] Getting stream URL for ${videoUrl}, cookieFile=${cookieFilePath}`);
       // Get the direct stream URL first (fast), then stream it via ffmpeg
       const getUrlArgs = {
-        format: 'bestaudio/best/worst',
         getUrl: true,
         noWarnings: true,
         noPlaylist: true,
