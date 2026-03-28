@@ -88,10 +88,11 @@ try {
       if (!videoId) return undefined;
       const videoUrl = `https://youtu.be/${videoId}`;
       const args = {
-        format: track.raw?.live ? 'best[height<=360]/best' : 'bestaudio/bestaudio*[ext=webm]/best',
+        format: 'bestaudio/best',
         output: '-',
         noWarnings: true,
         noProgress: true,
+        extractor_args: 'youtube:player_client=ios',
       };
       if (cookieFilePath) args.cookies = cookieFilePath;
       console.log(`[yt-dlp] Starting stream for ${videoUrl}`);
