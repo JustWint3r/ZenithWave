@@ -10,6 +10,7 @@ import { Player } from 'discord-player';
 import { YoutubeiExtractor } from 'discord-player-youtubei';
 import mongoose from 'mongoose';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import config from '../config/config.js';
@@ -59,12 +60,41 @@ console.log(`Time: ${new Date().toISOString()}`);
 console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
 console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 
+// Write Netscape cookie file for yt-dlp (it requires a file path, not a cookie string)
+let cookieFilePath = null;
+if (process.env.YOUTUBE_COOKIE) {
+  cookieFilePath = path.join(os.tmpdir(), 'yt-cookies.txt');
+  fs.writeFileSync(cookieFilePath, process.env.YOUTUBE_COOKIE, 'utf8');
+  console.log('Cookie file written to:', cookieFilePath);
+}
+
 try {
   await player.extractors.register(YoutubeiExtractor, {
     cookie: cookieHeader,
-    useYoutubeDL: true,
     generateWithPoToken: true,
     logLevel: 'ALL',
+    createStream: async (track) => {
+      const { default: youtubeDl } = await import('youtube-dl-exec');
+      const videoId = track.url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+      if (!videoId) return undefined;
+      const videoUrl = `https://youtu.be/${videoId}`;
+      const args = {
+        format: track.raw?.live ? 'best[height<=360]' : 'bestaudio',
+        output: '-',
+        noWarnings: true,
+        noProgress: true,
+      };
+      if (cookieFilePath) args.cookies = cookieFilePath;
+      const proc = youtubeDl.exec(videoUrl, args);
+      proc.catch(() => {});
+      const stream = proc.stdout;
+      if (!stream) return undefined;
+      const kill = () => !proc.killed && proc.kill();
+      stream.on('close', kill);
+      stream.on('error', kill);
+      stream.on('end', kill);
+      return stream;
+    },
   });
   console.log('YoutubeiExtractor registered successfully');
 } catch (err) {
