@@ -64,8 +64,15 @@ console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 let cookieFilePath = null;
 if (process.env.YOUTUBE_COOKIE) {
   cookieFilePath = path.join(os.tmpdir(), 'yt-cookies.txt');
-  fs.writeFileSync(cookieFilePath, process.env.YOUTUBE_COOKIE, 'utf8');
-  console.log('Cookie file written to:', cookieFilePath);
+  let cookieContent = process.env.YOUTUBE_COOKIE;
+  // Ensure the Netscape header is present — yt-dlp requires it
+  if (!cookieContent.includes('# Netscape HTTP Cookie File')) {
+    cookieContent = '# Netscape HTTP Cookie File\n# https://curl.se/docs/http-cookies.html\n\n' + cookieContent;
+  }
+  fs.writeFileSync(cookieFilePath, cookieContent, 'utf8');
+  // Log first few lines to verify format (not the actual cookies)
+  const lines = cookieContent.split('\n').slice(0, 5);
+  console.log('Cookie file written. First lines:', lines);
 }
 
 try {
