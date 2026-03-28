@@ -66,7 +66,7 @@ console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 let cookieFilePath = null;
 if (process.env.YOUTUBE_COOKIE) {
   cookieFilePath = path.join(os.tmpdir(), 'yt-cookies.txt');
-  let cookieContent = process.env.YOUTUBE_COOKIE;
+  let cookieContent = process.env.YOUTUBE_COOKIE.replace(/^[^#\n]+/, '').trimStart();
   // Ensure the Netscape header is present — yt-dlp requires it
   if (!cookieContent.includes('# Netscape HTTP Cookie File')) {
     cookieContent = '# Netscape HTTP Cookie File\n# https://curl.se/docs/http-cookies.html\n\n' + cookieContent;
