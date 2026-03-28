@@ -87,24 +87,33 @@ try {
       const videoId = track.url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
       if (!videoId) return undefined;
       const videoUrl = `https://youtu.be/${videoId}`;
-      const args = {
+      console.log(`[yt-dlp] Getting stream URL for ${videoUrl}`);
+      // Get the direct stream URL first (fast), then stream it via ffmpeg
+      const getUrlArgs = {
         format: 'bestaudio/best',
-        output: '-',
+        getUrl: true,
         noWarnings: true,
-        noProgress: true,
-        'extractor-args': 'youtube:player_client=ios',
+        noPlaylist: true,
       };
-      if (cookieFilePath) args.cookies = cookieFilePath;
-      console.log(`[yt-dlp] Starting stream for ${videoUrl}`);
-      const proc = youtubeDl.exec(videoUrl, args);
-      proc.catch((err) => console.error('[yt-dlp] Error:', err.stderr || err.message));
-      const stream = proc.stdout;
-      if (!stream) return undefined;
-      const kill = () => !proc.killed && proc.kill();
-      stream.on('close', kill);
-      stream.on('error', kill);
-      stream.on('end', kill);
-      return stream;
+      if (cookieFilePath) getUrlArgs.cookies = cookieFilePath;
+      try {
+        const result = await youtubeDl(videoUrl, getUrlArgs);
+        const streamUrl = typeof result === 'string' ? result.trim().split('\n')[0] : null;
+        if (!streamUrl) { console.error('[yt-dlp] No URL returned'); return undefined; }
+        console.log('[yt-dlp] Got stream URL, piping via ffmpeg');
+        // Use ffmpeg to stream the URL directly
+        const { spawn } = await import('child_process');
+        const ffmpeg = spawn('ffmpeg', [
+          '-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_delay_max', '5',
+          '-i', streamUrl,
+          '-f', 'opus', '-c:a', 'libopus', '-b:a', '128k',
+          '-vn', 'pipe:1'
+        ], { stdio: ['ignore', 'pipe', 'ignore'] });
+        return ffmpeg.stdout;
+      } catch (err) {
+        console.error('[yt-dlp] Error getting URL:', err.stderr || err.message);
+        return undefined;
+      }
     },
   });
   console.log('YoutubeiExtractor registered successfully');
