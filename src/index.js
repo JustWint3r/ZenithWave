@@ -89,12 +89,19 @@ try {
       const videoUrl = `https://youtu.be/${videoId}`;
       console.log(`[yt-dlp] Getting stream URL for ${videoUrl}, cookieFile=${cookieFilePath}`);
       // Get the direct stream URL first (fast), then stream it via ffmpeg
+      // First, list available formats to diagnose
+      try {
+        const { default: youtubeDl2 } = await import('youtube-dl-exec');
+        const fmtResult = await youtubeDl2(videoUrl, { listFormats: true, cookies: cookieFilePath || undefined });
+        console.log('[yt-dlp] Available formats:', fmtResult);
+      } catch (e) {
+        console.log('[yt-dlp] listFormats output:', e.stderr || e.message);
+      }
       const getUrlArgs = {
         getUrl: true,
         noWarnings: true,
         noPlaylist: true,
         cookies: cookieFilePath || undefined,
-        'extractor-args': 'youtube:player_client=mweb',
       };
       try {
         const result = await youtubeDl(videoUrl, getUrlArgs);
