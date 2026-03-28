@@ -64,6 +64,7 @@ try {
     cookie: cookieHeader,
     useYoutubeDL: true,
     generateWithPoToken: true,
+    logLevel: 'ALL',
   });
   console.log('YoutubeiExtractor registered successfully');
 } catch (err) {
