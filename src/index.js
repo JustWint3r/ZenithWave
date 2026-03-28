@@ -88,7 +88,7 @@ try {
       if (!videoId) return undefined;
       const videoUrl = `https://youtu.be/${videoId}`;
       const args = {
-        format: track.raw?.live ? 'best[height<=360]' : 'bestaudio',
+        format: track.raw?.live ? 'best[height<=360]/best' : 'bestaudio/bestaudio*[ext=webm]/best',
         output: '-',
         noWarnings: true,
         noProgress: true,
