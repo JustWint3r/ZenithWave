@@ -58,6 +58,8 @@ console.log('=== ZenithWave Bot Starting ===');
 console.log(`Node version: ${process.version}`);
 console.log(`Time: ${new Date().toISOString()}`);
 console.log('YOUTUBE_COOKIE set:', !!cookieHeader);
+console.log('YOUTUBE_COOKIE raw length:', process.env.YOUTUBE_COOKIE?.length ?? 0);
+console.log('YOUTUBE_COOKIE first 50 chars:', JSON.stringify(process.env.YOUTUBE_COOKIE?.slice(0, 50)));
 console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 
 // Write Netscape cookie file for yt-dlp (it requires a file path, not a cookie string)
