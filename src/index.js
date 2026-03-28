@@ -87,15 +87,15 @@ try {
       const videoId = track.url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
       if (!videoId) return undefined;
       const videoUrl = `https://youtu.be/${videoId}`;
-      console.log(`[yt-dlp] Getting stream URL for ${videoUrl}`);
+      console.log(`[yt-dlp] Getting stream URL for ${videoUrl}, cookieFile=${cookieFilePath}`);
       // Get the direct stream URL first (fast), then stream it via ffmpeg
       const getUrlArgs = {
         format: 'bestaudio/best',
         getUrl: true,
         noWarnings: true,
         noPlaylist: true,
+        cookies: cookieFilePath || undefined,
       };
-      if (cookieFilePath) getUrlArgs.cookies = cookieFilePath;
       try {
         const result = await youtubeDl(videoUrl, getUrlArgs);
         const streamUrl = typeof result === 'string' ? result.trim().split('\n')[0] : null;
