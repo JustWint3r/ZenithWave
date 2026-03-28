@@ -90,11 +90,12 @@ try {
       console.log(`[yt-dlp] Getting stream URL for ${videoUrl}, cookieFile=${cookieFilePath}`);
       // Get the direct stream URL first (fast), then stream it via ffmpeg
       const getUrlArgs = {
-        format: 'bestaudio/best',
+        format: 'bestaudio/best/worst',
         getUrl: true,
         noWarnings: true,
         noPlaylist: true,
         cookies: cookieFilePath || undefined,
+        'extractor-args': 'youtube:player_client=mweb',
       };
       try {
         const result = await youtubeDl(videoUrl, getUrlArgs);
