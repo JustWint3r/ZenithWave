@@ -1,4 +1,4 @@
-# ZenithWave Discord Music + LeadeBoard!
+# ZenithWave Discord Music + LeaderBoard!
 
 A feature-rich Discord bot built with discord.py 2.6.4 featuring music playback with queue system and XP-based leveling system.
 
