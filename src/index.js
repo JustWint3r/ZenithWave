@@ -65,8 +65,8 @@ console.log('YOUTUBE_COOKIE first 50 chars:', JSON.stringify(process.env.YOUTUBE
 console.log('YOUTUBE_OAUTH set:', !!process.env.YOUTUBE_OAUTH);
 
 // Write Netscape cookie file for yt-dlp (it requires a file path, not a cookie string)
-let cookieFilePath = null;
-if (process.env.YOUTUBE_COOKIE) {
+let cookieFilePath = process.env.COOKIE_FILE || null;
+if (!cookieFilePath && process.env.YOUTUBE_COOKIE) {
   cookieFilePath = path.join(os.tmpdir(), 'yt-cookies.txt');
   let cookieContent = process.env.YOUTUBE_COOKIE.replace(/^[^#\n]+/, '').trimStart();
   // Ensure the Netscape header is present — yt-dlp requires it
@@ -78,6 +78,7 @@ if (process.env.YOUTUBE_COOKIE) {
   const lines = cookieContent.split('\n').slice(0, 5);
   console.log('Cookie file written. First lines:', lines);
 }
+console.log('Cookie file path:', cookieFilePath);
 
 try {
   await player.extractors.register(YoutubeiExtractor, {

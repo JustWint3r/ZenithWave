@@ -25,7 +25,7 @@ export default {
     }
 
     const query = interaction.options.getString('query');
-    const cookieFilePath = process.env.YOUTUBE_COOKIE ? '/tmp/yt-cookies.txt' : null;
+    const cookieFilePath = process.env.COOKIE_FILE || (process.env.YOUTUBE_COOKIE ? '/tmp/yt-cookies.txt' : null);
 
     // Search first to get the videoId, then pre-fetch the stream URL
     // so it's already cached when createStream is called
