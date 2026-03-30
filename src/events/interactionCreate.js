@@ -21,9 +21,9 @@ export default {
       };
 
       if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(errorMessage);
+        await interaction.followUp(errorMessage).catch(console.error);
       } else {
-        await interaction.reply(errorMessage);
+        await interaction.reply(errorMessage).catch(console.error);
       }
     }
   },

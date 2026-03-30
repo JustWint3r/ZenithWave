@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { useMainPlayer, QueryType } from 'discord-player';
+import { prewarm } from '../../streamCache.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -24,6 +25,14 @@ export default {
     }
 
     const query = interaction.options.getString('query');
+
+    // If it's a direct YouTube URL, start fetching the stream URL immediately
+    // so it's ready in cache by the time createStream is called
+    const videoId = query.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+    if (videoId) {
+      const cookieFilePath = process.env.YOUTUBE_COOKIE ? '/tmp/yt-cookies.txt' : null;
+      prewarm(videoId, cookieFilePath);
+    }
 
     try {
       const { track } = await player.play(interaction.member.voice.channel, query, {

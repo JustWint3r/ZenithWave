@@ -14,6 +14,7 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import config from '../config/config.js';
+import { fetchStreamUrl, prewarm } from './streamCache.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,7 +36,8 @@ const player = new Player(client, {
     quality: 'highestaudio',
     highWaterMark: 1 << 25,
     filter: 'audioonly'
-  }
+  },
+  connectionTimeout: 120000,  // 2 minutes — give yt-dlp time to fetch URL + start streaming
 });
 
 // Parse Netscape cookie file format into a cookie header string
@@ -83,42 +85,12 @@ try {
     generateWithPoToken: true,
     logLevel: 'ALL',
     createStream: async (track) => {
-      const { default: youtubeDl } = await import('youtube-dl-exec');
       const videoId = track.url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
       if (!videoId) return undefined;
-      const videoUrl = `https://youtu.be/${videoId}`;
-      console.log(`[yt-dlp] Getting stream URL for ${videoUrl}, cookieFile=${cookieFilePath}`);
-      // Get the direct stream URL first (fast), then stream it via ffmpeg
-      // First, list available formats to diagnose
       try {
-        const { default: youtubeDl2 } = await import('youtube-dl-exec');
-        const fmtResult = await youtubeDl2(videoUrl, { listFormats: true, cookies: cookieFilePath || undefined });
-        console.log('[yt-dlp] Available formats:', fmtResult);
-      } catch (e) {
-        console.log('[yt-dlp] listFormats output:', e.stderr || e.message);
-      }
-      const getUrlArgs = {
-        getUrl: true,
-        noWarnings: true,
-        noPlaylist: true,
-        cookies: cookieFilePath || undefined,
-      };
-      try {
-        const result = await youtubeDl(videoUrl, getUrlArgs);
-        const streamUrl = typeof result === 'string' ? result.trim().split('\n')[0] : null;
-        if (!streamUrl) { console.error('[yt-dlp] No URL returned'); return undefined; }
-        console.log('[yt-dlp] Got stream URL, piping via ffmpeg');
-        // Use ffmpeg to stream the URL directly
-        const { spawn } = await import('child_process');
-        const ffmpeg = spawn('ffmpeg', [
-          '-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_delay_max', '5',
-          '-i', streamUrl,
-          '-f', 'opus', '-c:a', 'libopus', '-b:a', '128k',
-          '-vn', 'pipe:1'
-        ], { stdio: ['ignore', 'pipe', 'ignore'] });
-        return ffmpeg.stdout;
+        return await fetchStreamUrl(videoId, cookieFilePath);
       } catch (err) {
-        console.error('[yt-dlp] Error getting URL:', err.stderr || err.message);
+        console.error('[yt-dlp] Error:', err.stderr?.trim() || err.message);
         return undefined;
       }
     },
@@ -137,6 +109,9 @@ player.events.on('playerStart', (queue, track) => {
 
 player.events.on('audioTrackAdd', (queue, track) => {
   queue.metadata.channel.send(`Track **${track.title}** added to queue`);
+  // Prewarm stream URL cache so it's ready when createStream is called
+  const videoId = track.url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+  if (videoId) prewarm(videoId, cookieFilePath);
 });
 
 player.events.on('emptyQueue', (queue) => {
@@ -145,6 +120,15 @@ player.events.on('emptyQueue', (queue) => {
 
 player.events.on('emptyChannel', (queue) => {
   queue.metadata.channel.send('Leaving voice channel - nobody is listening!');
+});
+
+player.events.on('connection', (queue) => {
+  const vc = queue.dispatcher?.voiceConnection;
+  if (vc) {
+    vc.on('stateChange', (oldState, newState) => {
+      console.log(`[Voice] ${oldState.status} -> ${newState.status}`);
+    });
+  }
 });
 
 player.events.on('playerError', (queue, error) => {
