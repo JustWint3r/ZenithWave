@@ -12,8 +12,11 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 COPY package*.json ./
+COPY scripts/ ./scripts/
 
 RUN npm install --only=production
+
+RUN node scripts/patch-voice.js
 
 COPY . .
 

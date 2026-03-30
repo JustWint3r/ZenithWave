@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { useMainPlayer, QueryType } from 'discord-player';
-import { prewarm } from '../../streamCache.js';
+import { fetchStreamUrl } from '../../streamCache.js';
 
 export default {
   data: new SlashCommandBuilder()
@@ -25,18 +25,33 @@ export default {
     }
 
     const query = interaction.options.getString('query');
+    const cookieFilePath = process.env.YOUTUBE_COOKIE ? '/tmp/yt-cookies.txt' : null;
 
-    // If it's a direct YouTube URL, start fetching the stream URL immediately
-    // so it's ready in cache by the time createStream is called
-    const videoId = query.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
-    if (videoId) {
-      const cookieFilePath = process.env.YOUTUBE_COOKIE ? '/tmp/yt-cookies.txt' : null;
-      prewarm(videoId, cookieFilePath);
-    }
-
+    // Search first to get the videoId, then pre-fetch the stream URL
+    // so it's already cached when createStream is called
     try {
-      const { track } = await player.play(interaction.member.voice.channel, query, {
+      const searchResult = await player.search(query, {
         searchEngine: QueryType.YOUTUBE_SEARCH,
+      });
+
+      if (!searchResult.hasTracks()) {
+        return interaction.editReply({ content: 'No results found!' });
+      }
+
+      const track = searchResult.tracks[0];
+      const videoId = track.url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+
+      // Pre-fetch and cache the stream URL BEFORE joining voice / playing
+      if (videoId) {
+        try {
+          await fetchStreamUrl(videoId, cookieFilePath);
+        } catch (err) {
+          console.error('[yt-dlp] Pre-fetch failed:', err.stderr?.trim() || err.message);
+          return interaction.editReply({ content: `Could not fetch stream: ${err.message}` });
+        }
+      }
+
+      const { track: playedTrack } = await player.play(interaction.member.voice.channel, searchResult, {
         nodeOptions: {
           metadata: {
             channel: interaction.channel,
@@ -53,7 +68,7 @@ export default {
       });
 
       return interaction.editReply({
-        content: `Added **${track.title}** to the queue!`
+        content: `Added **${playedTrack.title}** to the queue!`
       });
 
     } catch (error) {

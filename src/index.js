@@ -14,7 +14,7 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import config from '../config/config.js';
-import { fetchStreamUrl, prewarm } from './streamCache.js';
+import { fetchStreamUrl, createAudioStream, prewarm } from './streamCache.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,7 +88,7 @@ try {
       const videoId = track.url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
       if (!videoId) return undefined;
       try {
-        return await fetchStreamUrl(videoId, cookieFilePath);
+        return createAudioStream(videoId, cookieFilePath);
       } catch (err) {
         console.error('[yt-dlp] Error:', err.stderr?.trim() || err.message);
         return undefined;
