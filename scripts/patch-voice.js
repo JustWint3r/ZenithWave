@@ -56,3 +56,25 @@ if (needsSymlink) {
   symlinkSync(targetPath, voipPath);
   console.log('[patch] discord-voip -> @discordjs/voice symlink created');
 }
+
+// Patch 4: prism-media - add mediaplex as opus provider for Android ARM64
+import { readFileSync as readFS, writeFileSync as writeFS } from 'fs';
+
+const prismOpusPath = 'node_modules/prism-media/src/opus/Opus.js';
+let prismOpus = readFS(prismOpusPath, 'utf8');
+
+if (prismOpus.includes('mediaplex')) {
+  console.log('[patch] prism-media opus already patched, skipping');
+} else {
+  prismOpus = prismOpus.replace(
+    `['@discordjs/opus', opus => ({ Encoder: opus.OpusEncoder })],
+    ['node-opus', opus => ({ Encoder: opus.OpusEncoder })],
+    ['opusscript', opus => ({ Encoder: opus })],`,
+    `['mediaplex', opus => ({ Encoder: opus.OpusEncoder })],
+    ['@discordjs/opus', opus => ({ Encoder: opus.OpusEncoder })],
+    ['node-opus', opus => ({ Encoder: opus.OpusEncoder })],
+    ['opusscript', opus => ({ Encoder: opus })],`
+  );
+  writeFS(prismOpusPath, prismOpus);
+  console.log('[patch] prism-media patched: mediaplex added as opus provider');
+}
