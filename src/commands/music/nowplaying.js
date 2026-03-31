@@ -19,17 +19,17 @@ export default {
     }
 
     const track = queue.currentTrack;
-    const progress = queue.node.createProgressBar();
+    const progress = queue.node.createProgressBar() || '▬▬▬▬▬▬▬▬▬▬';
 
     const embed = new EmbedBuilder()
       .setColor(config.colors.primary)
       .setTitle('Now Playing')
       .setDescription(`[${track.title}](${track.url})`)
-      .setThumbnail(track.thumbnail)
+      .setThumbnail(track.thumbnail || null)
       .addFields(
-        { name: 'Artist', value: track.author, inline: true },
-        { name: 'Duration', value: track.duration, inline: true },
-        { name: 'Requested by', value: track.requestedBy.toString(), inline: true },
+        { name: 'Artist', value: track.author || 'Unknown', inline: true },
+        { name: 'Duration', value: track.duration || 'Unknown', inline: true },
+        { name: 'Requested by', value: track.requestedBy?.toString() || 'Unknown', inline: true },
         { name: 'Progress', value: progress, inline: false }
       )
       .setTimestamp();
