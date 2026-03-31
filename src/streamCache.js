@@ -4,7 +4,7 @@ const execFileAsync = promisify(execFile);
 
 const cache = new Map();
 
-const PROXY = process.env.YTDLP_PROXY || 'http://epqtagdd:mwracv23eol0@31.59.20.176:6754';
+const PROXY = process.env.YTDLP_PROXY || null;
 
 export async function fetchStreamUrl(videoId, cookieFilePath) {
   const cached = cache.get(videoId);
@@ -20,9 +20,9 @@ export async function fetchStreamUrl(videoId, cookieFilePath) {
     '--no-warnings', '--no-playlist', '--no-check-certificates',
     '--js-runtime', 'node',
     '-f', 'bestaudio/best',
-    '--proxy', PROXY,
     '-g',
   ];
+  if (PROXY) args.push('--proxy', PROXY);
   if (cookieFilePath) args.push('--cookies', cookieFilePath);
   args.push(videoUrl);
 
@@ -66,9 +66,9 @@ export function createAudioStream(videoId, cookieFilePath) {
     '--no-warnings', '--no-playlist', '--no-check-certificates',
     '--js-runtime', 'node',
     '-f', 'bestaudio/best',
-    '--proxy', PROXY,
     '-o', '-',
   ];
+  if (PROXY) ytArgs.push('--proxy', PROXY);
   if (cookieFilePath) ytArgs.push('--cookies', cookieFilePath);
   ytArgs.push(videoUrl);
 
